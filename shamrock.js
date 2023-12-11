@@ -246,22 +246,37 @@ export class shamrock extends plugin {
     const { battery, scale, status } = res
     let text = `当前电量: ${battery}%\n`
     if (this.e.isMaster) {
-      // todo status 意义存疑
       switch (status) {
         case 3: {
-          text += '当前未在充电中'
+          // BATTERY_STATUS_DISCHARGING
+          text += '当前未在充电中😔'
           break
         }
         case 2: {
+          // BATTERY_STATUS_CHARGING
           text += '当前正在充电中🔋'
           break
         }
+        case 4: {
+          // BATTERY_STATUS_NOT_CHARGING
+          text += '当前连接电源线但未在充电中❌'
+          break
+        }
+        case 5: {
+          // BATTERY_STATUS_FULL
+          text += '电量充满了！✅'
+          break
+        }
         case 1: {
+          // BATTERY_STATUS_UNKNOWN
           if (battery < 0) {
             text = '无电量信息，可能使用的是虚拟机或模拟器🎮'
           }
           break
         }
+      }
+      if (scale > 0) {
+        text += `\n剩余电量${scale / 1000}毫安时`
       }
     } else if (battery < 0) {
       text = '无电量信息，可能使用的是虚拟机或模拟器🎮'
