@@ -55,6 +55,11 @@ export class shamrock extends plugin {
           reg: '^#?(查|查看)?电量',
           /** 执行方法 */
           fnc: 'battery'
+        },
+        {
+          reg: '^#?戳',
+          /** 执行方法 */
+          fnc: 'poke'
         }
       ]
     })
@@ -282,6 +287,34 @@ export class shamrock extends plugin {
       text = '无电量信息，可能使用的是虚拟机或模拟器🎮'
     }
     await e.reply(text)
+  }
+
+  async poke (e) {
+    if (e.adapter !== 'shamrock') {
+      return
+    }
+    if (!e.isGroup) {
+      return
+    }
+    let times = e.msg.replace(/^#?戳/, '').replace('次', '')
+    try {
+      times = parseInt(times)
+      // 最多戳十次吧
+      times = Math.min(10, times)
+    } catch (err) {
+      times = 1
+    }
+    if (!times) {
+      times = 1
+    }
+    let userId = e.at || e.sender.user_id
+    const api = (await import('../Lain-plugin/adapter/shamrock/api.js')).default
+    for (let i = 0; i < times; i++) {
+      await api.SendApi(e.self_id, 'poke', {
+        group_id: e.group_id,
+        user_id: userId
+      })
+    }
   }
 }
 
