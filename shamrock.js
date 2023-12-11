@@ -85,7 +85,7 @@ export class shamrock extends plugin {
       }
       defaultAuthor = defaultAuthor || '测试作者'
       let [title = '测试音乐', singer = defaultAuthor, url = 'https://www.bilibili.com/video/BV1uT4y1P7CX'] = args.split(';', 3)
-      await sendMsg({
+      await sendMsg(e, {
         type: 'music',
         data: {
           type: 'custom',
@@ -105,11 +105,11 @@ export class shamrock extends plugin {
     }
     let args = e.msg.replace(/^#?发(位置|地点)/, '')
     if (args.trim() === '帮助') {
-      await e.reply('仅安装Lain插件并使用shamrock适配器时可用。#发地点经度/纬度，如#发地点39.915168/116.403875')
+      await e.reply('仅安装Lain插件并使用shamrock适配器时可用。#发地点经度;纬度，如#发地点39.915168;116.403875')
       return true
     }
-    let [lat = '39.915168', lon = '116.403875'] = args.split('/', 2)
-    await sendMsg({
+    let [lat = '39.915168', lon = '116.403875'] = args.split(';', 2)
+    await sendMsg(e, {
       type: 'location',
       data: {
         lat,
