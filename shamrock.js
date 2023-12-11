@@ -50,6 +50,11 @@ export class shamrock extends plugin {
           reg: '^#?发骰子',
           /** 执行方法 */
           fnc: 'newDice'
+        },
+        {
+          reg: '^#?(查|查看)?电量',
+          /** 执行方法 */
+          fnc: 'battery'
         }
       ]
     })
@@ -113,13 +118,13 @@ export class shamrock extends plugin {
     }
     let [lat, lon = '116.403875'] = args.split(';', 2)
     if (!lat) {
-      lat = 39.915168
+      lat = '39.915168'
     }
     await sendMsg(e, {
       type: 'location',
       data: {
-        lat,
-        lon
+        lat: parseFloat(lat),
+        lon: parseFloat(lon)
       }
     })
   }
@@ -230,6 +235,16 @@ export class shamrock extends plugin {
         id
       }
     })
+  }
+
+  async battery (e) {
+    if (e.adapter !== 'shamrock') {
+      return
+    }
+    const api = (await import('../Lain-plugin/adapter/shamrock/api.js')).default
+    let res = await api.SendApi(e.self_id, 'get_device_battery')
+    const { battery, scale, status } = res
+    await e.reply(`当前电量: ${battery}%`)
   }
 }
 
