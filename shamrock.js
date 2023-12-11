@@ -52,7 +52,7 @@ export class shamrock extends plugin {
           fnc: 'newDice'
         },
         {
-          reg: '^#?(查|查看)?电量',
+          reg: '^#(查|查看)?电量',
           /** 执行方法 */
           fnc: 'battery'
         }
@@ -244,7 +244,25 @@ export class shamrock extends plugin {
     const api = (await import('../Lain-plugin/adapter/shamrock/api.js')).default
     let res = await api.SendApi(e.self_id, 'get_device_battery')
     const { battery, scale, status } = res
-    await e.reply(`当前电量: ${battery}%`)
+    let text = `当前电量: ${battery}%\n`
+    // todo status 意义存疑
+    switch (status) {
+      case 3: {
+        text += '当前未在充电中'
+        break
+      }
+      case 2: {
+        text += '当前正在充电中🔋'
+        break
+      }
+      case 1: {
+        if (battery < 0) {
+          text = '无电量信息，可能使用的是虚拟机或模拟器🎮'
+        }
+        break
+      }
+    }
+    await e.reply(text)
   }
 }
 
