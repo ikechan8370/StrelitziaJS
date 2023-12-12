@@ -1,4 +1,5 @@
 import plugin from '../../lib/plugins/plugin.js'
+import common from '../../lib/common/common.js'
 
 export class shamrock extends plugin {
   constructor () {
@@ -35,7 +36,7 @@ export class shamrock extends plugin {
         },
         {
           /** 命令正则匹配 */
-          reg: '^#?发篮球',
+          reg: '^#?发?篮球',
           /** 执行方法 */
           fnc: 'basketball'
         },
@@ -164,7 +165,7 @@ export class shamrock extends plugin {
     if (e.adapter !== 'shamrock') {
       return
     }
-    let args = e.msg.replace(/^#?发篮球/, '')
+    let args = e.msg.replace(/^#?发?篮球/, '')
     if (args.trim() === '帮助') {
       await e.reply('仅安装Lain插件并使用shamrock适配器时可用。#发篮球+数字，如#发篮球1\n数字意义：5 没中, 4 擦边没中, 3 卡框, 2 擦边中, 1 正中\n默认则随机')
       return true
@@ -307,6 +308,14 @@ export class shamrock extends plugin {
     if (!times) {
       times = 1
     }
+    if (!e.isMaster) {
+      let lock = await redis.get(`Strelitzia:poke:${e.sender.user_id}`)
+      if (lock) {
+        await e.reply('戳一戳正在cd中哦')
+        return
+      }
+      times = 1
+    }
     let userId = e.at || e.sender.user_id
     const api = (await import('../Lain-plugin/adapter/shamrock/api.js')).default
     for (let i = 0; i < times; i++) {
@@ -314,6 +323,10 @@ export class shamrock extends plugin {
         group_id: e.group_id,
         user_id: userId
       })
+      await common.sleep(100)
+    }
+    if (!e.isMaster) {
+      await redis.set(`Strelitzia:poke:${e.sender.user_id}`, '1', { EX: 3 })
     }
   }
 }
