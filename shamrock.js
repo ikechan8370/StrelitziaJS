@@ -61,6 +61,11 @@ export class shamrock extends plugin {
           reg: '^#?戳',
           /** 执行方法 */
           fnc: 'poke'
+        },
+        {
+          reg: '^#?发?龙',
+          /** 执行方法 */
+          fnc: 'loong'
         }
       ]
     })
@@ -328,6 +333,11 @@ export class shamrock extends plugin {
     if (!e.isMaster) {
       await redis.set(`Strelitzia:poke:${e.sender.user_id}`, '1', { EX: 3 })
     }
+  }
+
+  async loong (e) {
+    await sendMsg(e, '[CQ:face,id=394]')
+    // 小龙392 stickerId=38 中龙393 stickerId=39 shamrock没写
   }
 }
 
