@@ -336,7 +336,22 @@ export class shamrock extends plugin {
   }
 
   async loong (e) {
-    await sendMsg(e, '[CQ:face,id=394]')
+    let times = e.msg.replace(/^#?发?龙/, '')
+    if (times) {
+      try {
+        times = parseInt(times)
+      } catch (e) {
+        times = 1
+      }
+    }
+    if (!e.isMaster) {
+      times = Math.min(3, times)
+    } else {
+      times = Math.min(10, times)
+    }
+    for (let i = 0; i < times; i++) {
+      await sendMsg(e, '[CQ:face,id=394]')
+    }
     // 小龙392 stickerId=38 中龙393 stickerId=39 shamrock没写
   }
 }
