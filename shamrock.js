@@ -1,6 +1,8 @@
 import plugin from '../../lib/plugins/plugin.js'
 import common from '../../lib/common/common.js'
-
+import { Client } from 'icqq'
+import { randomBytes } from 'crypto'
+import * as pb from 'icqq/lib/core/protobuf/index.js'
 export class shamrock extends plugin {
   constructor () {
     super({
@@ -8,7 +10,7 @@ export class shamrock extends plugin {
       dsc: 'shamrock杂七杂八接口',
       /** https://oicqjs.github.io/oicq/#events */
       event: 'message',
-      priority: 5000,
+      priority: -5000,
       rule: [
         {
           /** 命令正则匹配 */
@@ -61,6 +63,17 @@ export class shamrock extends plugin {
           reg: '^#?戳',
           /** 执行方法 */
           fnc: 'poke'
+        },
+        {
+          reg: '^#?发?龙',
+          /** 执行方法 */
+          fnc: 'loong'
+        },
+        {
+          reg: '',
+          /** 执行方法 */
+          fnc: 'onLoong',
+          log: false
         }
       ]
     })
@@ -329,10 +342,49 @@ export class shamrock extends plugin {
       await redis.set(`Strelitzia:poke:${e.sender.user_id}`, '1', { EX: 3 })
     }
   }
+
+  async loong (e) {
+    let times = e.msg.replace(/^#?发?龙/, '')
+    if (times) {
+      try {
+        times = parseInt(times)
+      } catch (e) {
+        times = 1
+      }
+    }
+    if (!e.isMaster) {
+      times = Math.min(3, times)
+    } else {
+      times = Math.min(10, times)
+    }
+    times = Math.max(times, 1)
+    for (let i = 0; i < times; i++) {
+      if (e.adapter !== 'shamrock') {
+        await icqqSendLoong(e)
+      } else {
+        await sendMsg(e, '[CQ:face,id=394]')
+      }
+    }
+    // 小龙392 stickerId=38 中龙393 stickerId=39 shamrock没写
+  }
+
+  async onLoong (e) {
+    try {
+      let loongs = [392, 393, 394]
+      if (e.message[0]?.type === 'face' && loongs.includes(e.message[0]?.id)) {
+        if (e.adapter !== 'shamrock') {
+          await icqqSendLoong(e)
+        } else {
+          sendMsg(e, '[CQ:face,id=394]')
+        }
+      }
+    } catch (err) {}
+    return false
+  }
 }
 
 async function sendMsg (e, data) {
-  const api = (await import('../Lain-plugin/adapter/shamrock/api.js')).default
+  const api = e.bot.api || (await import('../Lain-plugin/adapter/shamrock/api.js')).default
   if (e.isGroup) {
     await api.SendApi(e.self_id, 'send_group_msg', {
       group_id: e.group_id,
@@ -345,7 +397,67 @@ async function sendMsg (e, data) {
     })
   }
 }
-
+async function icqqSendLoong (e) {
+  /**
+   *
+   * @type {Client}
+   */
+  let bot = Bot
+  const rich = {
+    2: [
+      {
+        37: {
+          1: 0,
+          16: 0,
+          17: 0,
+          19: { 15: 0, 25: 0, 30: 0, 31: 0, 34: 0, 41: 0, 51: 0, 52: 0, 54: 0, 55: 0, 56: 0, 71: 0, 72: 0, 73: { 1: 0, 2: 0, 3: 0, 4: 0 }, 96: 0 }
+        }
+      },
+      {
+        9: {
+          1: 0
+        }
+      },
+      {
+        53: {
+          1: 37,
+          2: {
+            1: '1',
+            2: '40',
+            3: 394,
+            4: 1,
+            5: 3,
+            7: '/龙年快乐',
+            9: 1
+          },
+          3: 3
+        }
+      },
+      {
+        1: {
+          1: '/新年大龙',
+          12: {
+            1: '[新年大龙]请使用最新版手机QQ体验新功能'
+          }
+        }
+      }
+    ]
+  }
+  let body = {
+    1: e.isGroup ? { 2: { 1: e.group_id } } : { 1: { 1: e.friend.uid } },
+    2: {
+      1: 1,
+      2: 0,
+      3: 0
+    },
+    3: { 1: rich },
+    4: randomBytes(2).readUInt16BE(),
+    5: randomBytes(4).readUInt32BE()
+  }
+  console.log(body)
+  body = pb.encode(body)
+  await bot.sendUni('MessageSvc.PbSendMsg', body)
+}
 async function getImg (e) {
   // 取消息中的图片、at的头像、回复的图片，放入e.img
   if (e.at && !e.source) {
