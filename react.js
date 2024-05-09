@@ -16,7 +16,8 @@ export class react extends plugin {
           /** 命令正则匹配 */
           reg: '.*',
           /** 执行方法 */
-          fnc: 'react'
+          fnc: 'react',
+          log: false
         }
       ]
     })
