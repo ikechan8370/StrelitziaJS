@@ -1,5 +1,6 @@
 import plugin from '../../lib/plugins/plugin.js'
 import NoteUser from '../genshin/model/mys/NoteUser.js'
+import fetch from 'node-fetch'
 
 export class aa extends plugin {
   constructor () {
